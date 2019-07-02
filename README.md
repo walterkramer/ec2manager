@@ -15,9 +15,10 @@ Create profile ec2manager for the access key
 
 ## Running
 
-'pipenv run python manager/ec2manager.py <command> <--customer=CustomerName>'
+'pipenv run python manager/ec2manager.py <command> <subcommand> <--customer=CustomerName>'
 
-*command* is list, start, or stop
+*command* is instances, volumes, or snapshots
+*subcommand* - depends on command
 *project* is optional (default is none)
 
 

@@ -15,8 +15,81 @@ def filter_instances(customer):
     return instances
 
 @click.group()
+def cli():
+    """ec2manager manages ec2's"""
+
+
+@cli.group('snapshots')
+def snapshots():
+    """Commands for snapshots"""
+
+@snapshots.command('list')
+@click.option('--customer',default=None,
+    help="Only snapshots for customer (tag Customer:<name>)")
+
+def list_snapshots(customer):
+    "List EC2 snapshots"
+
+    instances = filter_instances(customer)
+
+    for i in instances:
+        for v in i.volumes.all():
+            for s in v.snapshots.all():
+                print(", ".join((
+                   s.id,
+                   v.id,
+                   i.id,
+                   s.state,
+                   s.progress,
+                   s.start_time.strftime("%c")
+                )))
+    return
+
+
+@cli.group('volumes')
+def volumes():
+    """Commands for volumes"""
+
+@volumes.command('list')
+@click.option('--customer',default=None,
+    help="Only volumes for customer (tag Customer:<name>)")
+
+def list_volumes(customer):
+    "List EC2 volumes"
+
+    instances = filter_instances(customer)
+
+    for i in instances:
+        for v in i.volumes.all():
+            print(", ".join((
+                v.id,
+                i.id,
+                v.state,
+                str(v.size) + "GiB",
+                v.encrypted and "Encrypted" or "Not Encrypted"    
+            )))
+    return
+
+
+@cli.group('instances')
 def instances():
     """Commands for instances"""
+
+@instances.command('snapshot',
+    help="Create snaphots of all volumes")
+@click.option('--customer',default=None,
+    help="Only instances for customer (tag Customer:<name>)")
+
+def create_snapshots(customer):
+    "Create snapshots for EC2 instances"
+
+    instances = filter_instances(customer)
+    
+    for i in instances:
+        for v in i.volumes.all():
+            print("Creating snapshot of volume {0} from instance {1}".format(v.id , i.id))
+            v.create_snapshot(Description="Created by ec2manager")
+    return
 
 @instances.command('list')
 @click.option('--customer',default=None,
@@ -64,6 +137,6 @@ def start_instances(customer):
     return
 
 if __name__ == '__main__':
-    instances()
+    cli()
 
 
