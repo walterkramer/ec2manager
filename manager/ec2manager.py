@@ -1,4 +1,5 @@
 import boto3
+import botocore
 import click
 
 session = boto3.Session(profile_name='ec2manager')
@@ -101,7 +102,7 @@ def create_snapshots(customer):
         i.wait_until_running()
 
     print("Job's done!")
-    
+
     return
 
 @instances.command('list')
@@ -133,7 +134,11 @@ def stop_instances(customer):
     instances = filter_instances(customer)
     for i in instances:
         print("Stopping {0}...".format(i.id))
-        i.stop()
+        try:
+            i.stop()
+        except botocore.exceptions.ClientError as e:
+            print(" Cloud not stop {0} .".format(i.id) + str(e))
+            continue
     return
 
 @instances.command('start')
@@ -146,7 +151,11 @@ def start_instances(customer):
     instances = filter_instances(customer)
     for i in instances:
         print("Starting {0}...".format(i.id))
-        i.start()
+        try:
+            i.start()
+        except botocore.exceptions.ClientError as e:
+            print(" Cloud not start {0} .".format(i.id) + str(e))
+            continue
     return
 
 if __name__ == '__main__':
